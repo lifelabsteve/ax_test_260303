@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AX과제 자가평가 시스템</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f6f8;--bg2:#ffffff;--bg3:#f0f1f4;--bg4:#e8eaef;
+  --surface:#ffffff;--surface2:#f0f1f4;--surface3:#e4e6eb;
+  --border:#d8dbe3;--border2:#c5c9d4;
+  --text:#1a1d26;--text2:#4a5064;--text3:#7c8298;
+  --primary:#1e56a0;--primary2:#1a4b8c;--primary3:#15407a;--primary-dim:rgba(30,86,160,.06);
+  --teal:#0d9488;--teal-dim:rgba(13,148,136,.06);
+  --red:#dc2626;--red-dim:rgba(220,38,38,.05);
+  --green:#16a34a;--green-dim:rgba(22,163,74,.05);
+  --blue:#2563eb;--blue-dim:rgba(37,99,235,.05);
+  --amber:#d97706;--amber-dim:rgba(217,119,6,.06);
+  --purple:#7c3aed;
+  --radius:10px;--radius-sm:6px;--radius-lg:12px;
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  --shadow-lg:0 4px 16px rgba(0,0,0,.08);
+}
+html{font-size:17px;scroll-behavior:smooth}
+body{
+  font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);
+  line-height:1.7;min-height:100vh;overflow-x:hidden;
+}
+
+/* ═══════ SCROLLBAR ═══════ */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--text3)}
+
+/* ═══════ LAYOUT ═══════ */
+.app{position:relative;z-index:1;max-width:960px;margin:0 auto;padding:0 20px 80px}
+
+/* ═══════ HERO ═══════ */
+.hero{
+  text-align:center;padding:60px 0 40px;
+  animation:fadeUp .8s ease-out;
+}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--primary-dim);border:1px solid rgba(30,86,160,.15);
+  border-radius:100px;padding:8px 20px;font-size:.85rem;color:var(--primary);
+  font-weight:500;letter-spacing:.5px;margin-bottom:20px;
+}
+.hero h1{
+  font-size:2.6rem;font-weight:900;letter-spacing:-.02em;
+  color:var(--text);
+  line-height:1.3;margin-bottom:12px;
+}
+.hero p{color:var(--text2);font-size:1.05rem;max-width:560px;margin:0 auto 32px;line-height:1.8}
+.hero-stats{
+  display:flex;justify-content:center;gap:32px;flex-wrap:wrap;
+}
+.hero-stat{text-align:center}
+.hero-stat .num{font-family:'JetBrains Mono',monospace;font-size:1.6rem;font-weight:600;color:var(--primary)}
+.hero-stat .label{font-size:.75rem;color:var(--text3);margin-top:2px}
+
+/* ═══════ GRADE LEGEND ═══════ */
+.grade-legend{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;
+  margin:32px 0;padding:20px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);
+  box-shadow:var(--shadow);
+}
+.grade-item{
+  display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:var(--radius-sm);
+  font-size:.88rem;
+}
+.grade-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+
+/* ═══════ USER INFO CARD ═══════ */
+.info-card{
+  background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);
+  padding:32px;margin-bottom:32px;box-shadow:var(--shadow);
+  animation:fadeUp .8s ease-out .1s both;
+}
+.info-card h2{font-size:1.2rem;font-weight:700;margin-bottom:20px;color:var(--text)}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.info-field label{
+  display:block;font-size:.82rem;color:var(--text3);margin-bottom:6px;font-weight:500;
+  letter-spacing:.3px;text-transform:uppercase;
+}
+.info-field input,.info-field select{
+  width:100%;padding:12px 16px;background:var(--bg3);border:1px solid var(--border);
+  border-radius:var(--radius-sm);color:var(--text);font-family:inherit;font-size:1rem;
+  transition:border-color .2s,box-shadow .2s;
+}
+.info-field input:focus,.info-field select:focus{
+  outline:none;border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-dim);
+}
+.info-field input::placeholder{color:var(--text3)}
+
+/* ═══════ PROGRESS BAR ═══════ */
+.progress-wrap{
+  position:sticky;top:0;z-index:100;background:rgba(245,246,248,.95);
+  backdrop-filter:blur(12px);padding:12px 0;margin:0 -20px;
+  border-bottom:1px solid var(--border);
+  transition:opacity .3s;
+}
+.progress-wrap.hidden{opacity:0;pointer-events:none}
+.progress-inner{max-width:960px;margin:0 auto;padding:0 20px}
+.progress-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.progress-label{font-size:.85rem;color:var(--text2);font-weight:500}
+.progress-pct{font-family:'JetBrains Mono',monospace;font-size:.9rem;color:var(--primary);font-weight:600}
+.progress-bar{height:4px;background:var(--bg4);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--primary3),var(--primary));border-radius:2px;transition:width .4s ease;width:0}
+.progress-sections{display:flex;gap:4px;margin-top:8px}
+.progress-section{
+  flex:1;height:3px;border-radius:1.5px;background:var(--bg4);
+  transition:background .3s;cursor:pointer;position:relative;
+}
+.progress-section.done{background:var(--primary)}
+.progress-section.active{background:var(--primary);opacity:.6;animation:pulse-bar 1.5s infinite}
+.progress-section::after{
+  content:attr(data-label);position:absolute;bottom:8px;left:50%;transform:translateX(-50%);
+  font-size:.6rem;color:var(--text3);white-space:nowrap;opacity:0;transition:opacity .2s;pointer-events:none;
+}
+.progress-section:hover::after{opacity:1}
+
+/* ═══════ SECTION HEADER ═══════ */
+.section-header{
+  margin:48px 0 20px;padding:24px;
+  background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);
+  border-left:4px solid var(--primary);box-shadow:var(--shadow);
+  animation:fadeUp .6s ease-out;
+}
+.section-header .part-tag{
+  font-size:.78rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;
+  color:var(--primary);margin-bottom:6px;
+}
+.section-header h2{font-size:1.3rem;font-weight:700;margin-bottom:6px}
+.section-header p{font-size:.95rem;color:var(--text2);line-height:1.6}
+
+/* ═══════ QUESTION CARD ═══════ */
+.q-card{
+  background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);
+  margin-bottom:20px;overflow:hidden;box-shadow:var(--shadow);
+  transition:border-color .3s,box-shadow .3s;
+  animation:fadeUp .5s ease-out both;
+}
+.q-card:hover{border-color:var(--border2);box-shadow:var(--shadow-lg)}
+.q-card.answered{border-color:rgba(30,86,160,.25)}
+.q-card.answered .q-header{background:var(--primary-dim)}
+
+.q-header{
+  padding:18px 24px;display:flex;align-items:flex-start;gap:14px;
+  border-bottom:1px solid var(--border);
+}
+.q-number{
+  flex-shrink:0;width:36px;height:36px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--bg4);font-family:'JetBrains Mono',monospace;
+  font-size:.75rem;font-weight:600;color:var(--text2);
+  transition:background .3s,color .3s;
+}
+.q-card.answered .q-number{background:var(--primary);color:#fff}
+.q-title{font-size:1.05rem;font-weight:600;flex:1;padding-top:6px;line-height:1.5}
+.q-score-badge{
+  flex-shrink:0;padding:6px 14px;border-radius:100px;
+  font-family:'JetBrains Mono',monospace;font-size:.88rem;font-weight:600;
+  background:var(--bg4);color:var(--text3);
+  transition:background .3s,color .3s;
+}
+.q-card.answered .q-score-badge{background:var(--primary);color:#fff}
+
+.q-body{overflow:visible}
+.q-body-inner{padding:20px 24px 24px}
+
+/* ═══════ WHY BOX ═══════ */
+.why-box{
+  padding:18px 20px;background:#eef4fb;border:1px solid #c9ddf2;
+  border-radius:var(--radius-sm);margin-bottom:16px;
+  font-size:.95rem;color:var(--text2);line-height:1.75;
+}
+.why-box strong{color:var(--primary);font-weight:600}
+
+/* ═══════ EXAMPLES ═══════ */
+.examples{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.example-box{
+  padding:16px 18px;border-radius:var(--radius-sm);font-size:.92rem;line-height:1.75;
+}
+.example-box.good{background:#f0faf3;border:1px solid #b6e2c6;color:var(--text2)}
+.example-box.bad{background:#fef2f2;border:1px solid #f3c4c4;color:var(--text2)}
+.example-box .ex-title{font-weight:600;margin-bottom:6px;font-size:.88rem}
+.example-box.good .ex-title{color:var(--green)}
+.example-box.bad .ex-title{color:var(--red)}
+
+/* ═══════ CRITERIA TABLE ═══════ */
+.criteria-table{
+  width:100%;border-collapse:separate;border-spacing:0;
+  margin-bottom:20px;border-radius:var(--radius-sm);overflow:hidden;
+  border:1px solid var(--border);
+}
+.criteria-table th{
+  background:var(--bg4);padding:10px 16px;text-align:left;
+  font-size:.82rem;font-weight:600;color:var(--text3);
+  letter-spacing:.5px;text-transform:uppercase;
+}
+.criteria-table td{
+  padding:10px 16px;border-top:1px solid var(--border);font-size:.92rem;
+  color:var(--text2);vertical-align:top;line-height:1.6;
+}
+.criteria-table td:first-child{
+  font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--primary);
+  white-space:nowrap;width:60px;
+}
+.criteria-table tr:hover td{background:rgba(30,86,160,.03)}
+
+/* ═══════ SCORE SELECTOR ═══════ */
+.score-selector{display:flex;gap:8px;flex-wrap:wrap}
+.score-btn{
+  flex:1;min-width:100px;padding:14px 10px;
+  background:var(--bg3);border:2px solid var(--border);border-radius:var(--radius-sm);
+  cursor:pointer;text-align:center;transition:all .2s;
+}
+.score-btn:hover{border-color:var(--primary);background:var(--primary-dim)}
+.score-btn.selected{border-color:var(--primary);background:var(--primary-dim)}
+.score-btn .s-num{
+  font-family:'JetBrains Mono',monospace;font-size:1.3rem;font-weight:600;
+  color:var(--text);display:block;margin-bottom:2px;
+}
+.score-btn.selected .s-num{color:var(--primary)}
+.score-btn .s-label{font-size:.78rem;color:var(--text3);line-height:1.3}
+
+/* ═══════ SECTION SUBTOTAL ═══════ */
+.section-subtotal{
+  background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);
+  padding:24px;margin:20px 0 40px;display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:16px;box-shadow:var(--shadow);
+}
+.subtotal-left h3{font-size:1.1rem;font-weight:700;margin-bottom:4px}
+.subtotal-left p{font-size:.9rem;color:var(--text2)}
+.subtotal-right{display:flex;align-items:center;gap:16px}
+.subtotal-score{
+  font-family:'JetBrains Mono',monospace;font-size:2rem;font-weight:600;color:var(--primary);
+}
+.subtotal-max{font-size:1rem;color:var(--text3)}
+.subtotal-bar{width:120px;height:8px;background:var(--bg4);border-radius:4px;overflow:hidden}
+.subtotal-fill{height:100%;background:var(--primary);border-radius:4px;transition:width .6s ease}
+
+/* ═══════ RESULTS ═══════ */
+.results-section{
+  margin-top:48px;animation:fadeUp .6s ease-out;
+}
+.results-section.hidden{display:none}
+
+.result-hero{
+  text-align:center;padding:48px 32px;margin-bottom:32px;
+  background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);
+  position:relative;overflow:hidden;box-shadow:var(--shadow-lg);
+}
+.result-hero::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at center,var(--primary-dim),transparent 70%);
+}
+.result-hero>*{position:relative}
+.result-hero h2{font-size:1.6rem;font-weight:900;margin-bottom:24px}
+.total-score{
+  font-family:'JetBrains Mono',monospace;font-size:4rem;font-weight:600;
+  color:var(--primary);line-height:1;
+}
+.total-max{font-size:1.2rem;color:var(--text3);margin-left:4px}
+.total-grade{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:72px;height:72px;border-radius:50%;margin-top:16px;
+  font-size:2rem;font-weight:900;
+  border:3px solid;
+}
+.grade-S{color:#b45309;border-color:#d97706;background:#fef9ee}
+.grade-A{color:#15803d;border-color:#16a34a;background:#f0fdf4}
+.grade-B{color:#1d4ed8;border-color:#2563eb;background:#eff6ff}
+.grade-C{color:#c2410c;border-color:#ea580c;background:#fff7ed}
+.grade-D{color:#b91c1c;border-color:#dc2626;background:#fef2f2}
+.result-msg{margin-top:16px;font-size:1rem;color:var(--text2);line-height:1.7}
+
+/* ═══════ RESULT CARDS ═══════ */
+.result-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:32px}
+.result-card{
+  background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);
+  padding:20px;position:relative;overflow:hidden;
+}
+.result-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+}
+.result-card .rc-title{font-size:.82rem;color:var(--text2);margin-bottom:12px;font-weight:500}
+.result-card .rc-score{
+  font-family:'JetBrains Mono',monospace;font-size:1.8rem;font-weight:600;
+}
+.result-card .rc-grade{
+  position:absolute;top:16px;right:16px;
+  width:36px;height:36px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.9rem;font-weight:700;border:2px solid;
+}
+.result-card .rc-bar{margin-top:12px;height:6px;background:var(--bg4);border-radius:3px;overflow:hidden}
+.result-card .rc-fill{height:100%;border-radius:3px;transition:width .8s ease}
+.result-card.warn{border-color:rgba(239,68,68,.3)}
+.result-card.warn .rc-title{color:var(--red)}
+
+/* ═══════ FEEDBACK ═══════ */
+.feedback-section{
+  background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);
+  padding:32px;margin-bottom:32px;box-shadow:var(--shadow);
+}
+.feedback-section h3{font-size:1.2rem;font-weight:700;margin-bottom:20px}
+.feedback-item{
+  padding:16px 20px;border-radius:var(--radius-sm);margin-bottom:10px;
+  font-size:.95rem;line-height:1.75;display:flex;align-items:flex-start;gap:12px;
+}
+.feedback-item.positive{background:#f0fdf4;border:1px solid #b6e2c6}
+.feedback-item.negative{background:#fef2f2;border:1px solid #f3c4c4}
+.feedback-item.info{background:#eef4fb;border:1px solid #c9ddf2}
+.feedback-icon{flex-shrink:0;font-size:1.1rem;margin-top:2px}
+.feedback-text{flex:1;color:var(--text2)}
+.feedback-text strong{color:var(--text);font-weight:600}
+
+/* ═══════ ACTION BUTTONS ═══════ */
+.actions{display:flex;gap:12px;justify-content:center;margin-top:32px;flex-wrap:wrap}
+.btn{
+  padding:12px 28px;border-radius:var(--radius-sm);font-family:inherit;font-size:.9rem;
+  font-weight:600;cursor:pointer;border:none;transition:all .2s;
+  display:inline-flex;align-items:center;gap:8px;
+}
+.btn-primary{background:var(--primary);color:#fff;box-shadow:0 2px 8px rgba(30,86,160,.25)}
+.btn-primary:hover{background:var(--primary2);transform:translateY(-1px);box-shadow:0 4px 16px rgba(30,86,160,.3)}
+.btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+.btn-secondary:hover{background:var(--surface3)}
+.btn-danger{background:var(--red-dim);color:var(--red);border:1px solid rgba(239,68,68,.2)}
+.btn-danger:hover{background:rgba(239,68,68,.15)}
+
+.nav-buttons{
+  display:flex;justify-content:space-between;margin:32px 0;gap:12px;
+}
+
+/* ═══════ RADAR CHART (CSS) ═══════ */
+.radar-wrap{
+  display:flex;justify-content:center;margin:32px 0;
+}
+
+/* ═══════ PRINT ═══════ */
+@media print{
+  body{background:#fff;color:#111}
+  .progress-wrap,.nav-buttons,.actions,.btn{display:none!important}
+  .q-card,.info-card,.section-header,.result-card,.feedback-section,.result-hero,.section-subtotal{
+    background:#fff!important;border-color:#ddd!important;break-inside:avoid;box-shadow:none!important;
+  }
+}
+
+/* ═══════ RESPONSIVE ═══════ */
+@media(max-width:640px){
+  .hero h1{font-size:1.6rem}
+  .info-grid{grid-template-columns:1fr}
+  .examples{grid-template-columns:1fr}
+  .result-grid{grid-template-columns:1fr}
+  .score-selector{gap:4px}
+  .score-btn{min-width:55px;padding:10px 4px}
+  .score-btn .s-label{display:none}
+  .section-subtotal{flex-direction:column;text-align:center}
+}
+
+/* ═══════ ANIMATIONS ═══════ */
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(20px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@keyframes pulse-bar{
+  0%,100%{opacity:.6}50%{opacity:1}
+}
+@keyframes popIn{
+  from{opacity:0;transform:scale(.9)}
+  to{opacity:1;transform:scale(1)}
+}
+
+/* ═══════ PART TABS ═══════ */
+.part-tabs{
+  display:flex;gap:8px;margin:32px 0 0;
+}
+.part-tab{
+  flex:1;padding:14px 20px;background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--radius) var(--radius) 0 0;cursor:pointer;
+  font-weight:600;font-size:.9rem;text-align:center;
+  transition:all .2s;color:var(--text3);border-bottom:none;
+}
+.part-tab.active{background:var(--bg2);color:var(--primary);border-color:var(--primary);border-bottom:1px solid var(--bg2);position:relative}
+.part-tab:hover:not(.active){color:var(--text2)}
+.part-content{
+  background:var(--bg2);border:1px solid var(--border);border-top:none;
+  border-radius:0 0 var(--radius) var(--radius);padding:24px;margin-bottom:32px;
+}
+
+/* ═══════ CONFETTI ═══════ */
+.confetti-wrap{
+  position:fixed;inset:0;z-index:9999;pointer-events:none;overflow:hidden;
+}
+.confetti{
+  position:absolute;width:10px;height:10px;top:-20px;
+  animation:confetti-fall 3s linear forwards;
+}
+@keyframes confetti-fall{
+  to{top:110vh;transform:rotate(720deg)}
+}
+
+/* ═══════ TOOLTIP ═══════ */
+.tip{
+  position:relative;display:inline-flex;align-items:center;justify-content:center;
+  width:18px;height:18px;border-radius:50%;background:var(--bg4);
+  font-size:.65rem;color:var(--text3);cursor:help;margin-left:6px;
+}
+.tip:hover::after{
+  content:attr(data-tip);position:absolute;bottom:calc(100% + 6px);left:50%;
+  transform:translateX(-50%);background:var(--surface3);color:var(--text);
+  padding:6px 10px;border-radius:6px;font-size:.72rem;white-space:nowrap;
+  box-shadow:var(--shadow);z-index:10;
+}
+
+/* ═══════ STAGE SELECTOR ═══════ */
+.stage-selector-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);
+  padding:20px 24px;margin-bottom:24px;box-shadow:var(--shadow);
+}
+.stage-selector-card h2{
+  font-size:.92rem;font-weight:700;margin-bottom:14px;color:var(--text);
+}
+.stage-selector{
+  display:flex;gap:10px;flex-wrap:wrap;
+}
+.stage-btn{
+  flex:1;min-width:140px;padding:12px 16px;border:2px solid var(--border);
+  border-radius:var(--radius);background:var(--surface);cursor:pointer;
+  text-align:center;transition:all .2s;user-select:none;
+}
+.stage-btn:hover{
+  border-color:var(--primary);background:var(--primary-dim);
+}
+.stage-btn.active{
+  border-color:var(--primary);background:var(--primary-dim);
+  box-shadow:0 0 0 1px var(--primary);
+}
+.stage-btn .stage-name{
+  font-size:.88rem;font-weight:600;color:var(--text);margin-bottom:4px;
+}
+.stage-btn .stage-desc{
+  font-size:.72rem;color:var(--text3);
+}
+.stage-btn.active .stage-name{color:var(--primary)}
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-badge">AX추진팀 &middot; (주)서연이화</div>
+    <h1>AX과제 자가평가 시스템</h1>
+    <p>기획 및 데이터 준비 단계의 과제 완성도를 점검하고<br>실시간 피드백을 받아보세요</p>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="num">40</div><div class="label">평가 문항</div></div>
+      <div class="hero-stat"><div class="num">200</div><div class="label">총 만점</div></div>
+      <div class="hero-stat"><div class="num">8</div><div class="label">평가 영역</div></div>
+      <div class="hero-stat"><div class="num">80+</div><div class="label">Gate 통과</div></div>
+    </div>
+    <div class="grade-legend">
+      <div class="grade-item"><div class="grade-dot" style="background:#d97706"></div>S (90~100) 탁월</div>
+      <div class="grade-item"><div class="grade-dot" style="background:#16a34a"></div>A (80~89) 우수 · Gate 통과</div>
+      <div class="grade-item"><div class="grade-dot" style="background:#2563eb"></div>B (65~79) 양호 · 보완 필요</div>
+      <div class="grade-item"><div class="grade-dot" style="background:#ea580c"></div>C (50~64) 보통 · 코칭 권장</div>
+      <div class="grade-item"><div class="grade-dot" style="background:#dc2626"></div>D (~49) 미흡 · 재검토</div>
+    </div>
+  </section>
+
+  <!-- USER INFO -->
+  <div class="info-card">
+    <h2>작성자 정보</h2>
+    <div class="info-grid">
+      <div class="info-field">
+        <label>과제명</label>
+        <input type="text" id="projectName" placeholder="예: 사출 불량 예측 AI 모델 개발">
+      </div>
+      <div class="info-field">
+        <label>부서 / 팀</label>
+        <input type="text" id="dept" placeholder="예: 품질보증팀">
+      </div>
+      <div class="info-field">
+        <label>작성자</label>
+        <input type="text" id="author" placeholder="이름">
+      </div>
+      <div class="info-field">
+        <label>작성일</label>
+        <input type="date" id="evalDate">
+      </div>
+    </div>
+  </div>
+
+  <!-- STAGE SELECTOR -->
+  <div class="stage-selector-card">
+    <h2>평가 범위 선택</h2>
+    <div class="stage-selector">
+      <div class="stage-btn" onclick="setMode(1,this)" id="modeBtn1">
+        <div class="stage-name">기획</div>
+        <div class="stage-desc">20문항 · 100점 만점</div>
+      </div>
+      <div class="stage-btn" onclick="setMode(2,this)" id="modeBtn2">
+        <div class="stage-name">데이터준비</div>
+        <div class="stage-desc">20문항 · 100점 만점</div>
+      </div>
+      <div class="stage-btn active" onclick="setMode(3,this)" id="modeBtn3">
+        <div class="stage-name">기획+데이터준비</div>
+        <div class="stage-desc">40문항 · 200점 만점</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="progress-wrap" id="progressWrap">
+    <div class="progress-inner">
+      <div class="progress-top">
+        <span class="progress-label" id="progressLabel">진행률</span>
+        <span class="progress-pct" id="progressPct">0%</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="progress-sections" id="progressSections"></div>
+    </div>
+  </div>
+
+  <!-- QUESTIONS CONTAINER -->
+  <div id="questionsContainer"></div>
+
+  <!-- SUBMIT -->
+  <div class="actions" id="submitArea">
+    <button class="btn btn-primary" onclick="showResults()" id="submitBtn" disabled>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
+      평가 결과 확인
+    </button>
+    <button class="btn btn-secondary" onclick="resetAll()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+      초기화
+    </button>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="results-section hidden" id="resultsSection"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════
+const SECTIONS = [
+  {id:'A',part:1,name:'비즈니스 문제 정의',desc:"'어떤 문제를 풀 것인가'를 구체적으로 정의하는 것이 AI 프로젝트 성패의 핵심입니다.",range:[0,5]},
+  {id:'B',part:1,name:'전략 연계 및 이해관계자',desc:'과제를 지지해줄 사람과 회사 전략과의 연결 고리를 확인합니다.',range:[5,10]},
+  {id:'C',part:1,name:'실현 가능성 검증',desc:"'정말 할 수 있는가?'를 기술, 데이터, 자원 측면에서 현실적으로 점검합니다.",range:[10,15]},
+  {id:'D',part:1,name:'기대효과 및 성공 기준',desc:"'하면 무엇이 좋아지는가?'와 '성공은 어떻게 판단하는가?'를 명확히 합니다.",range:[15,20]},
+  {id:'E',part:2,name:'데이터 식별 및 수집',desc:"AI에게 가르칠 '교과서(데이터)'를 찾고 모으는 단계입니다.",range:[20,25]},
+  {id:'F',part:2,name:'데이터 품질 관리',desc:"AI '교과서'의 오탈자를 잡고 빠진 페이지를 채우는 단계입니다.",range:[25,30]},
+  {id:'G',part:2,name:'데이터 가공',desc:'원본 데이터를 AI가 학습할 수 있는 형태로 정리하고 변환하는 단계입니다.',range:[30,35]},
+  {id:'H',part:2,name:'데이터 문서화 및 거버넌스',desc:'나중에 다른 사람도 이해할 수 있도록 기록을 남기고, 데이터를 안전하게 관리하는 단계입니다.',range:[35,40]},
+];
+
+const QUESTIONS = [{"title": "Q1. 해결하려는 업무 문제가 구체적으로 정의되어 있나요?", "why": "💡 왜 중요한가요?\n막연히 ‘AI를 도입하자’가 아니라, 어떤 공정/업무에서 구체적으로 어떤 어려움이 있는지 명확해야 합니다. 문제가 불분명하면 아무리 좋은 기술을 써도 엉뚱한 방향으로 갈 수 있습니다.", "good_example": "✅ 좋은 예시\n• ‘크래시패드 사출 공정에서 외관 불량(웰드라인) 발생률이 월 평균 3.2%로, 후공정 재작업이 반복되는 문제’\n• ‘도어트림 금형 설계 시 CAE 시뮬레이션 반복이 평균 7회로 리드타임 2주 초과’", "bad_example": "❌ 개선 필요 예시\n• ‘AI로 품질을 개선하자’ (어떤 품질? 어떤 공정?)\n• ‘스마트팩토리 구축’ (너무 광범위)", "criteria": {"1점": "문제를 정의하지 않았거나 ‘AI 도입’ 자체가 목적", "2점": "문제 영역은 언급했으나 구체적 현상/범위 불명확", "3점": "어떤 공정에서 어떤 문제인지 서술됨", "4점": "공정, 현상, 빈도, 영향 범위가 구체적으로 기술", "5점": "근본 원인까지 분석, 기존 방법의 한계까지 설명"}}, {"title": "Q2. 문제의 크기가 숫자(금액, 시간, 비율 등)로 표현되어 있나요?", "why": "💡 왜 중요한가요?\n숫자가 있어야 ‘과제 전 vs 후’를 비교할 수 있습니다. ‘현재 불량률 3%’가 없으면 ‘1.5%로 줄었다’는 성과를 증명할 수 없습니다.", "good_example": "✅ 좋은 예시\n• ‘사출 불량률 3.2% → 목표 1.5% 이하’\n• ‘금형 수정 비용 연 2.4억 → 목표 1.5억’\n• ‘설계 검토 14일 → 7일’", "bad_example": "❌ 개선 필요 예시\n• ‘불량률을 낮추고 싶다’ (현재 몇%? 목표?)\n• ‘비용 절감’ (얼마에서 얼마로?)", "criteria": {"1점": "정량 수치 전혀 없음", "2점": "‘많다/느리다’ 같은 정성적 표현만", "3점": "현재 수준(As-Is) 수치 있으나 목표 없음", "4점": "As-Is와 To-Be 수치 모두 있음", "5점": "수치 산출 근거(데이터 출처, 기간)까지 명시"}}, {"title": "Q3. 현재 상태(As-Is)와 목표 상태(To-Be) 간 Gap이 명확한가요?", "why": "💡 왜 중요한가요?\nGap이 명확해야 ‘이 과제가 얼마만큼의 변화를 만들어야 하는지’ 범위가 정해집니다. Gap이 너무 크면 단계를 나눠야 하고, 작으면 AI 없이도 가능할 수 있습니다.", "good_example": "✅ 좋은 예시\n• As-Is: 외관 검사 작업자 4명이 1일 8시간 전수검사, 검출률 92%\n• To-Be: AI 비전 검사로 작업자 1명 + AI 체제, 검출률 98% 이상\n• Gap: 인력 3명 절감 + 검출률 6%p 향상", "bad_example": "❌ 개선 필요 예시\n• 현재 상태만 기술하고 목표 없음\n• Gap 분석 없이 바로 솔루션으로 넘어감", "criteria": {"1점": "As-Is/To-Be 분석 없음", "2점": "현재 상태만 서술, 목표 불명확", "3점": "As-Is/To-Be가 기술되어 있으나 Gap이 정량화되지 않음", "4점": "Gap이 수치로 명확히 정의됨", "5점": "Gap을 단계별(단기/중기)로 나누어 로드맵으로 제시"}}, {"title": "Q4. 이 문제가 AI/데이터 기반 접근이 필요한 이유가 설명되어 있나요?", "why": "💡 왜 중요한가요?\n모든 문제에 AI가 필요한 것은 아닙니다. 엑셀이나 간단한 규칙으로 해결 가능하면 그게 더 효율적입니다. 데이터 패턴이 복잡하거나, 변수가 많거나, 실시간 판단이 필요할 때 AI가 적합합니다.", "good_example": "✅ 좋은 예시\n• ‘외관 불량 유형 50종 이상, 조명/각도별 판단 편차 → 사람의 일관된 판정 한계 → 비전 AI 필요’\n• ‘사출 조건 변수 12개 이상의 최적 조합 탐색 → 경험 기반 2주 → AI 최적화로 단축’", "bad_example": "❌ 개선 필요 예시\n• ‘AI가 트렌드니까’\n• 대안 검토 없이 바로 AI 전제", "criteria": {"1점": "AI 적용 이유 기술 없음", "2점": "막연한 기대만 기술", "3점": "기존 방법의 한계 서술, AI와 비교는 없음", "4점": "기존 방법 vs AI 차이가 구체적으로 비교됨", "5점": "규칙 기반/단순 자동화/AI 등 여러 대안 비교 후 근거 제시"}}, {"title": "Q5. 과제의 범위(Scope)가 명확히 한정되어 있나요?", "why": "💡 왜 중요한가요?\n범위가 넓으면 끝이 없습니다. ‘전 공정 품질 개선’이 아니라 ‘A라인 사출 공정의 웰드라인 불량 예측’처럼 한정해야 실행 가능합니다.", "good_example": "✅ 좋은 예시\n• 대상: 화성공장 A라인 사출 공정 (크래시패드 3개 차종)\n• 범위: 불량 예측 모델 개발까지 (자동 제어 연동은 2차 과제)\n• 제외: 도장/조립 공정은 본 과제 범위 외", "bad_example": "❌ 개선 필요 예시\n• ‘전 공장 품질 개선’ (범위 과다)\n• 포함/제외 사항 미구분", "criteria": {"1점": "범위 정의 없음", "2점": "대상 공정/제품 정도만 언급", "3점": "대상과 범위가 서술되어 있음", "4점": "포함/제외 사항이 구체적으로 구분됨", "5점": "단계별 범위 확장 로드맵까지 수립"}}, {"title": "Q6. 과제의 최종 책임자(Sponsor)가 명확히 지정되어 있나요?", "why": "💡 왜 중요한가요?\nSponsor란 과제 성공에 책임을 지고, 필요한 자원을 지원할 수 있는 의사결정권자입니다(팀장, 부서장 등). 없으면 장애물 발생 시 해결이 어렵습니다.", "good_example": "✅ 좋은 예시\n• ‘Sponsor: 품질보증팀 OOO 팀장. 역할: 최종 기준 승인, 인력 투입 의사결정’\n• 월 1회 진척 보고, 이슈 시 48시간 내 의사결정", "bad_example": "❌ 개선 필요 예시\n• Sponsor 미지정\n• ‘부서장님이 알아서’ (명시적 합의 없음)", "criteria": {"1점": "Sponsor 미지정", "2점": "이름만 있고 역할/책임 미정의", "3점": "이름과 기본 역할 정의됨", "4점": "역할, 의사결정 범위, 보고 체계 구체적 정의", "5점": "서면 합의 완료, 정기 리뷰 일정 확정"}}, {"title": "Q7. 이 과제가 전사 경영 전략 또는 부서 목표와 어떻게 연결되나요?", "why": "💡 왜 중요한가요?\n회사가 ‘원가 절감’을 중점 추진 중이라면, 이 AX과제가 원가 절감에 어떻게 기여하는지 연결 고리가 있어야 경영진 지원을 받을 수 있습니다.", "good_example": "✅ 좋은 예시\n• ‘2026년 원가율 2%p 절감 목표 → 금형 수정 비용 절감(연 0.9억) → AI CAE 최적화로 수정 횟수 40% 감소’\n• AX 비전 ‘데이터 기반 품질 혁신’과 직접 연계", "bad_example": "❌ 개선 필요 예시\n• 전략 연계 없이 기획\n• ‘혁신’, ‘디지털 전환’ 같은 추상적 단어만", "criteria": {"1점": "전략 연계 기술 없음", "2점": "추상적 연결만 (예: ‘혁신’)", "3점": "관련 전략 방향 언급, 구체적 연결 부족", "4점": "전사/부서 전략 → 과제 목표 연결 논리 구체적", "5점": "전략 정량 지표와 과제 기대효과가 수치적으로 연결"}}, {"title": "Q8. 과제에 필요한 현업 협력자(이해관계자)를 파악하고 협조 의사를 확인했나요?", "why": "💡 왜 중요한가요?\nAI 과제는 혼자 못합니다. 데이터 제공자, 업무 설명자, 결과 사용자가 필요합니다. 미리 파악하고 참여 의사를 확인해야 과제가 멈추지 않습니다.", "good_example": "✅ 좋은 예시\n• 이해관계자 목록: 사출팀 OOO(공정 데이터 제공), 품질팀 OOO(기준 자문), IT팀 OOO(시스템 연동)\n• 참여 범위와 예상 투입 시간 합의", "bad_example": "❌ 개선 필요 예시\n• ‘필요하면 그때 요청’\n• 목록 있으나 협조 의사 미확인", "criteria": {"1점": "이해관계자 파악 안 됨", "2점": "관련 부서명만 나열", "3점": "담당자 이름과 역할 정의됨", "4점": "담당자별 구체적 지원 내용/시기 합의", "5점": "전원 서면 합의 + Kick-off 미팅 완료"}}, {"title": "Q9. 과제 성공 시 수혜 부서/인원이 명확하고, 실제 사용 의지가 확인되었나요?", "why": "💡 왜 중요한가요?\nAI 모델을 만들어도 현업에서 안 쓰면 의미가 없습니다. 실제로 결과물을 사용할 사람이 ‘이거 쓰겠다’고 동의해야 합니다.", "good_example": "✅ 좋은 예시\n• ‘수혜 부서: 사출팀 (현장 작업자 12명). 현장 팀장 OOO의 사용 의사 확인 완료’\n• 현업 요구사항 반영: ‘판정 결과를 3초 이내 화면 표시 필요’", "bad_example": "❌ 개선 필요 예시\n• 수혜 대상 불명확\n• 현업에서 사용 의향을 확인하지 않음", "criteria": {"1점": "수혜 대상 파악 안 됨", "2점": "수혜 부서만 언급, 구체적 사용자 미확인", "3점": "수혜 부서/인원이 명확히 식별됨", "4점": "사용자의 구체적 요구사항까지 반영됨", "5점": "사용자가 과제 기획 단계부터 참여, UI/UX 요건 합의"}}, {"title": "Q10. 유사 과제의 사내외 사례를 조사해 보았나요?", "why": "💡 왜 중요한가요?\n같은 문제를 다른 회사나 다른 공장에서 이미 풀어본 적이 있을 수 있습니다. 벤치마킹을 하면 시행착오를 줄이고, 기대 성과를 현실적으로 추정할 수 있습니다.", "good_example": "✅ 좋은 예시\n• ‘국내 A사 사출 불량 예측: 정확도 93%, 불량률 1.2%p 감소 달성’\n• ‘글로벌 Tier1 B사 비전검사 도입: 검사 인력 60% 절감 사례’\n• 사내 타 공장 유사 적용 시도 및 교훈 정리", "bad_example": "❌ 개선 필요 예시\n• 벤치마킹 없이 기획\n• ‘다른 회사도 하니까’ (구체적 사례 없음)", "criteria": {"1점": "사례 조사 없음", "2점": "‘타사에서 한다’ 수준의 언급만", "3점": "1~2개 사례를 찾아 기본 정보 정리", "4점": "3건 이상 사례의 성과/한계를 분석하여 시사점 도출", "5점": "사내외 사례를 비교 분석하고, 본 과제에의 적용 방안을 구체적으로 반영"}}, {"title": "Q11. 필요 데이터의 존재 여부와 접근 가능성을 사전 조사했나요?", "why": "💡 왜 중요한가요?\nAI는 데이터로 학습합니다. ‘대충 있겠지’가 아니라, 실제로 어떤 시스템에 어떤 형태로 있는지 확인해야 합니다.", "good_example": "✅ 좋은 예시\n• ‘MES: 사출 조건 데이터 추출 가능 확인 – 2년치 약 50만 건. IT팀 확인’\n• ‘QMS 품질 검사 이력: 접근 권한 확보됨’", "bad_example": "❌ 개선 필요 예시\n• ‘데이터는 어딘가에 있을 것’\n• 확인 없이 ‘ERP에서 뽑으면 되지 않을까’", "criteria": {"1점": "데이터 확인 전혀 안 함", "2점": "추정만 있고 실제 확인 없음", "3점": "주요 데이터 존재 여부/소스 시스템 확인", "4점": "양, 기간, 형태, 접근 방법까지 확인", "5점": "샘플 데이터를 실제 추출하여 품질 사전 확인"}}, {"title": "Q12. 기술적 타당성(알고리즘, 인프라 등)을 검토했나요?", "why": "💡 왜 중요한가요?\n비슷한 문제를 AI로 풀 수 있다는 기술적 근거가 있어야 합니다. 논문, 사례, 또는 간단한 PoC(개념검증)를 통해 확인합니다.", "good_example": "✅ 좋은 예시\n• ‘사출 불량 예측: 유사 산업 논문에서 Random Forest로 90% 이상 정확도 보고’\n• ‘GPU 서버: 사내 AI 인프라 사용 가능 확인 (IT팀 협의)’", "bad_example": "❌ 개선 필요 예시\n• 기술 검토 없이 ‘AI가 다 할 수 있다’\n• 인프라 요건 미확인", "criteria": {"1점": "기술 검토 전혀 없음", "2점": "가능할 것이라는 막연한 판단만", "3점": "유사 사례/논문 기반 가능성 확인", "4점": "PoC 수행 또는 전문가 자문을 통한 타당성 확인", "5점": "기술 타당성 보고서 작성, 한계 및 대안까지 분석"}}, {"title": "Q13. 과제 일정이 단계별로 구체적으로 수립되어 있나요?", "why": "💡 왜 중요한가요?\n일정이 없으면 언제 끝나는지 모르고, 중간 점검도 불가능합니다. 단계별 마일스톤(중간 목표)이 있어야 진행 상황을 확인할 수 있습니다.", "good_example": "✅ 좋은 예시\n• 1단계 데이터 수집(4주) → 2단계 전처리(3주) → 3단계 모델 개발(6주) → 4단계 검증(3주) → 5단계 현업 적용(4주)\n• 간트차트 또는 WBS로 정리", "bad_example": "❌ 개선 필요 예시\n• ‘최대한 빨리’, ‘여유 될 때’\n• 일정 계획 없음", "criteria": {"1점": "일정 계획 전혀 없음", "2점": "총 기간만 있고 단계 구분 없음", "3점": "주요 단계별 일정이 기술됨", "4점": "단계별 마일스톤, 산출물, 담당자가 정의됨", "5점": "리스크 대비 여유(Buffer) 포함, 지연 시 대응 계획까지 수립"}}, {"title": "Q14. 인력과 비용이 현실적으로 산정되어 있나요?", "why": "💡 왜 중요한가요?\n현업 담당자가 기존 업무와 병행 가능한지, 외부 비용(서버, 라이선스 등)이 확보 가능한지 미리 확인해야 합니다.", "good_example": "✅ 좋은 예시\n• ‘현업 투입: OOO 과장 주 8시간(6개월). AX팀: 주 16시간. GPU 서버 월 50만원’\n• 총 예산: 인건비 포함 약 3,000만원, 부서장 승인 완료", "bad_example": "❌ 개선 필요 예시\n• 인력/비용 계획 없음\n• 현업 부하를 고려하지 않은 계획", "criteria": {"1점": "자원 계획 전혀 없음", "2점": "대략적 인력만 언급, 비용 미산정", "3점": "투입 인력, 예상 비용이 개괄적으로 기술", "4점": "역할별 투입량, 항목별 비용이 구체적으로 계획", "5점": "예산 승인 완료, 비용 초과 시 대응 방안까지 수립"}}, {"title": "Q15. 기술적, 조직적, 데이터 관련 리스크가 식별되었나요?", "why": "💡 왜 중요한가요?\n과제 진행 중 발생할 수 있는 위험 요소를 미리 파악하면 대비할 수 있습니다. 리스크는 ‘문제가 되면 어떡하지’가 아니라 ‘이런 문제가 생길 수 있으니 이렇게 대비하자’입니다.", "good_example": "✅ 좋은 예시\n• 기술 리스크: 데이터 불균형(불량 데이터 부족) → 대응: 오버샘플링, 추가 수집 계획\n• 조직 리스크: 현업 담당자 인사이동 → 대응: 백업 인력 지정\n• 데이터 리스크: MES 데이터 주기적 삭제 → 대응: 조기 백업 수행", "bad_example": "❌ 개선 필요 예시\n• 리스크 파악 없음\n• ‘문제 없을 것이다’", "criteria": {"1점": "리스크 식별 안 됨", "2점": "1~2개 리스크만 막연히 언급", "3점": "주요 리스크 3개 이상 식별", "4점": "리스크별 영향도/발생 가능성 평가 및 대응 방안 수립", "5점": "리스크 레지스터 작성, 정기 모니터링 계획 수립"}}, {"title": "Q16. 기대효과가 비용 절감, 시간 단축, 품질 향상 등으로 정량화되어 있나요?", "why": "💡 왜 중요한가요?\n기대효과는 ‘좋아질 것이다’가 아니라 ‘얼마나’입니다. 정확하지 않더라도 합리적 가정에 기반한 추정이면 충분합니다.", "good_example": "✅ 좋은 예시\n• ‘불량률 3.2%→1.5% → 연간 폐기/재작업 비용 1.8억 절감’\n• ‘설계 리드타임 14일→7일 → 연 8개 차종 × 7일 = 56일 공수 절감’", "bad_example": "❌ 개선 필요 예시\n• ‘품질이 좋아질 것이다’ (얼마나?)\n• 기대효과 미산출", "criteria": {"1점": "기대효과 기술 없음", "2점": "정성적 표현만 (‘개선될 것’)", "3점": "효과 항목은 나열, 수치 없음", "4점": "주요 효과가 금액/시간/비율로 정량화", "5점": "산출 근거와 보수적/낙관적 시나리오 모두 제시"}}, {"title": "Q17. 기대효과 산출의 근거(데이터, 벤치마크 등)가 제시되어 있나요?", "why": "💡 왜 중요한가요?\n숫자를 만들어내는 것과 근거 있는 숫자는 다릅니다. ‘왜 이 수치를 기대하는지’ 논리가 있어야 경영진이 신뢰합니다.", "good_example": "✅ 좋은 예시\n• ‘근거: 최근 6개월 불량 처리 비용 평균 1,500만원/월 × 감소율 50%(유사 사례 기반) = 연 0.9억’\n• 벤치마크: 동종 업계 A사 AI 도입 후 실제 30% 절감 달성", "bad_example": "❌ 개선 필요 예시\n• 근거 없이 ‘연간 5억 절감’\n• 산출 과정 미제시", "criteria": {"1점": "근거 전혀 없음", "2점": "직관적 추정만 (‘대략 이 정도’)", "3점": "일부 근거 데이터 또는 참고 사례 제시", "4점": "산출 공식과 주요 가정이 명시됨", "5점": "복수의 근거(내부 데이터 + 외부 벤치마크)로 교차 검증"}}, {"title": "Q18. 과제 성공을 판단하는 기술적 성공 기준이 정의되어 있나요?", "why": "💡 왜 중요한가요?\n비즈니스 기대효과와 별도로, AI 모델 자체의 성능 기준도 필요합니다. 예: ‘불량 검출 정확도 95% 이상’. 기술 기준이 없으면 모델이 ‘충분히 좋은지’ 판단할 수 없습니다.", "good_example": "✅ 좋은 예시\n• ‘불량 검출 정확도(Precision) 95% 이상, 재현율(Recall) 90% 이상’\n• ‘예측 오차(MAPE) 5% 이내’\n• ‘추론 시간 3초 이내 (실시간 적용 요건)’", "bad_example": "❌ 개선 필요 예시\n• 기술 기준 없음\n• ‘정확도가 높으면 성공’ (얼마나 높아야?)", "criteria": {"1점": "기술 성공 기준 없음", "2점": "‘정확도가 높으면’ 같은 모호한 기준", "3점": "1개 이상의 구체적 기술 지표 정의", "4점": "주요 기술 지표 2~3개가 수치로 정의됨", "5점": "기술 지표 + 운영 요건(속도, 안정성 등)까지 정의"}}, {"title": "Q19. 성공/부분성공/실패의 등급 기준이 사전에 합의되어 있나요?", "why": "💡 왜 중요한가요?\n과제 완료 후 ‘이게 성공인가?’를 놓고 의견이 갈리면 곤란합니다. 미리 3단계 기준을 정하면 명확합니다.", "good_example": "✅ 좋은 예시\n• 성공: 정확도 95%↑ + 현업 사용 승인\n• 부분 성공: 정확도 90~95%, 추가 개선 후 사용\n• 실패: 정확도 85% 미만 또는 현업 불채택", "bad_example": "❌ 개선 필요 예시\n• ‘되면 좋고, 안 되면 다음에’\n• 기준 미정의", "criteria": {"1점": "판정 기준 없음", "2점": "성공/실패만 구분, 기준 모호", "3점": "성공/실패 기준이 정량적으로 있음", "4점": "성공/부분성공/실패 3단계 기준 정량 정의", "5점": "3단계 기준이 이해관계자와 서면 합의 완료"}}, {"title": "Q20. 단기(6개월)와 중장기(1~2년) 기대효과가 구분되어 있나요?", "why": "💡 왜 중요한가요?\nAI 과제의 효과는 한 번에 나오지 않습니다. 초기에 Quick Win을 확보하고, 점진적으로 확대하는 계획이 현실적입니다.", "good_example": "✅ 좋은 예시\n• 단기(6개월): 특정 라인 불량 예측 모델 적용, 불량률 1%p 감소\n• 중기(1년): 전 라인 확대, 자동 알림 연동\n• 장기(2년): 실시간 공정 자동 제어 연동", "bad_example": "❌ 개선 필요 예시\n• 시간 구분 없는 단일 기대효과\n• 장기 효과만 제시, 단기 성과 불명확", "criteria": {"1점": "기간별 구분 없음", "2점": "장기 효과만 언급", "3점": "단기/장기 2단계로 구분", "4점": "단기/중기/장기 3단계로 구체적 구분", "5점": "각 단계별 마일스톤과 성과 지표가 정량적으로 연결"}}, {"title": "Q1. 과제에 필요한 데이터 소스가 빠짐없이 파악되었나요?", "why": "💡 왜 중요한가요?\n데이터 소스란 데이터가 저장된 곳입니다(MES, ERP, QMS, 엑셀, 수기 기록지 등). 하나의 과제에도 여러 소스가 필요한 경우가 많습니다.", "good_example": "✅ 좋은 예시\n• 데이터 소스 목록표 작성:\n  - MES: 사출 조건(온도,압력,속도,시간)\n  - QMS: 검사 결과(양품/불량, 불량유형)\n  - 설비보전: 가동/정지 이력\n  - 엑셀: 교대 기록(시스템 미등록)", "bad_example": "❌ 개선 필요 예시\n• ‘MES만 쓰면 될 것’\n• 소스 목록 미작성", "criteria": {"1점": "데이터 소스 파악 안 함", "2점": "1~2개만 확인, 누락 가능성 높음", "3점": "주요 소스를 목록으로 정리", "4점": "소스별 시스템명, 담당자, 형태, 양 정리", "5점": "모든 소스 파악 + 접근 가능 여부/제약사항 확인"}}, {"title": "Q2. 각 데이터의 양(건수)과 기간이 충분한지 확인했나요?", "why": "💡 왜 중요한가요?\nAI 학습에는 일정량 이상의 데이터가 필요합니다. 너무 적으면 패턴을 찾기 어렵고, 기간이 짧으면 계절/시기별 변동을 반영 못합니다.", "good_example": "✅ 좋은 예시\n• ‘사출 데이터: 2년치 48만 건 → AI 학습에 충분(최소 1만 건 이상 권장)’\n• ‘불량 데이터: 2,400건(전체의 0.5%) → 불균형 이슈, 오버샘플링 계획 수립’", "bad_example": "❌ 개선 필요 예시\n• 데이터 양/기간 미확인\n• ‘데이터가 있으니 충분할 것’", "criteria": {"1점": "데이터 양/기간 확인 안 함", "2점": "총 건수만 확인, 충분성 판단 안 함", "3점": "주요 데이터의 건수와 기간을 확인", "4점": "AI 학습에 필요한 최소 기준 대비 충분성 검토", "5점": "클래스별 분포, 시계열 커버리지까지 분석하여 보완 계획 수립"}}, {"title": "Q3. 데이터 수집 시 개인정보/보안 문제를 확인했나요?", "why": "💡 왜 중요한가요?\n직원 이름, 사번, 고객사 정보 등이 포함될 수 있습니다. 개인정보보호법 위반이나 영업비밀 유출 리스크가 있으므로 반드시 확인해야 합니다.", "good_example": "✅ 좋은 예시\n• ‘작업자 사번 → 해시 처리(비식별화)’\n• ‘고객사 부품번호 → 보안팀 검토 후 승인’\n• 데이터 반출 승인 절차 완료", "bad_example": "❌ 개선 필요 예시\n• 개인정보 확인 안 함\n• ‘사내 데이터니까 괜찮겠지’", "criteria": {"1점": "보안/개인정보 검토 안 함", "2점": "‘문제 없을 것’ 판단, 실제 확인 없음", "3점": "개인정보 포함 여부 확인, 해당 항목 식별", "4점": "비식별화/보안 조치 수행, 관련 부서 승인", "5점": "보안 체크리스트 완료, 조치 이력 문서화"}}, {"title": "Q4. 실제 데이터를 열어서 내용을 확인(탐색적 데이터 분석)했나요?", "why": "💡 왜 중요한가요?\n탐색적 데이터 분석(EDA)은 쉽게 말해 ‘데이터를 직접 열어서 살펴보는 것’입니다. 항목, 빈 칸, 이상한 값 등을 확인합니다. 엑셀로 열어서 훑어보는 것도 시작입니다.", "good_example": "✅ 좋은 예시\n• ‘샘플 1만 건 추출 확인: 25개 항목, 결측 항목 3개, 이상값(-99°C) 23건 발견’\n• 기초 통계(평균, 분포) 확인 및 시각화", "bad_example": "❌ 개선 필요 예시\n• 데이터를 열어보지 않고 ‘있다’고만 보고\n• IT팀이 ‘정상’이라 해서 직접 확인 안 함", "criteria": {"1점": "실제 데이터 확인 안 함", "2점": "대략적으로만 훑어봄", "3점": "항목 수, 건수, 기간 등 기본 정보 확인", "4점": "결측치, 이상값, 분포 확인 및 주요 발견 정리", "5점": "EDA 보고서 작성, 이슈와 대응 방안 정리"}}, {"title": "Q5. 데이터 수집 과정에서 발견된 제약사항이 문서화되었나요?", "why": "💡 왜 중요한가요?\n데이터를 모으다 보면 ‘이 데이터는 2023년 이전 것이 없다’, ‘수기 기록이라 디지털화 필요’ 같은 제약이 나옵니다. 이런 내용을 기록해야 이후 단계에서 대비할 수 있습니다.", "good_example": "✅ 좋은 예시\n• ‘제약1: 2022년 이전 데이터 삭제됨 → 분석 기간 2년으로 제한’\n• ‘제약2: 작업일지 수기 기록 → OCR 또는 수작업 디지털화 필요(약 2주 소요)’", "bad_example": "❌ 개선 필요 예시\n• 제약사항 기록 안 함\n• ‘별로 없을 것’이라 판단", "criteria": {"1점": "제약사항 파악/기록 안 함", "2점": "구두로 인지만, 기록 없음", "3점": "주요 제약사항이 목록으로 정리됨", "4점": "제약사항별 영향도와 대응 방안이 기술됨", "5점": "제약사항 대응 완료 여부까지 추적 관리"}}, {"title": "Q6. 잘못된 값(오류, 이상값)을 찾아서 처리했나요? [정확성]", "why": "💡 왜 중요한가요?\n‘이상값’은 정상 범위를 벗어난 데이터입니다. 예: 사출 온도가 보통 200~250°C인데 -0°C 기록. 센서 고장, 입력 실수 등이 원인이며, 그대로 두면 AI가 잘못 학습합니다.", "good_example": "✅ 좋은 예시\n• ‘온도 이상값 기준: 100°C 미만/400°C 초과 → 147건 발견, 센서 오류 확인 후 제외’\n• 처리 전 오류율 2.3% → 처리 후 0.1%", "bad_example": "❌ 개선 필요 예시\n• 이상값 확인 안 함\n• ‘이상한 값 좀 있지만 그냥 둠’", "criteria": {"1점": "이상값/오류 확인 안 함", "2점": "일부만 확인, 미처리", "3점": "주요 항목 이상값 식별 및 기본 처리", "4점": "항목별 기준 정해 체계적 처리, 원인 확인", "5점": "오류율 정량 측정, 처리 전후 비교 문서화"}}, {"title": "Q7. 빠진 데이터(빈 칸, 결측치)를 확인하고 처리했나요? [완전성]", "why": "💡 왜 중요한가요?\n‘결측치’는 비어있는 칸입니다. AI에게 빈 칸 많은 교과서를 주면 제대로 학습 못합니다. 삭제, 평균값 대체, 보간 등 상황에 맞는 처리가 필요합니다.", "good_example": "✅ 좋은 예시\n• 습도 15% 결측 → 인근 센서값으로 보간\n• 작업자ID 3% 결측 → 교대 기록 대조 복원\n• 전체 결측률: 8.2% → 0.3%", "bad_example": "❌ 개선 필요 예시\n• 결측치 확인 안 함\n• 모두 0으로 채움(의미 무시)", "criteria": {"1점": "결측치 확인 안 함", "2점": "인지만 하고 체계적 처리 안 함", "3점": "항목별 결측률 확인, 기본 처리", "4점": "항목 특성에 맞는 처리 방법 선택 적용", "5점": "결측률 변화 추적, 처리 타당성 문서화"}}, {"title": "Q8. 여러 출처의 데이터 형식이 통일되어 있나요? [일관성]", "why": "💡 왜 중요한가요?\n같은 항목인데 시스템마다 다른 형식이면 문제입니다. 예: 같은 부품을 ‘CrashPad-A’와 ‘크래시패드_A형’으로 부르는 경우. 날짜, 단위, 코드 체계 등을 통일해야 합니다.", "good_example": "✅ 좋은 예시\n• 부품코드: MES 10자리/QMS 8자리 → 매핑 테이블로 통일\n• 날짜: YYYY-MM-DD 통일, 시간대 KST 기준\n• 온도 단위: 모두 °C 통일", "bad_example": "❌ 개선 필요 예시\n• 형식 차이 확인 안 함\n• 다른 형식 데이터 그대로 합침", "criteria": {"1점": "형식 통일 작업 안 함", "2점": "차이 인지, 통일 안 함", "3점": "주요 항목 형식 통일, 일부 불일치 남음", "4점": "전체 항목 형식/단위/코드 통일, 매핑 기준 정리", "5점": "데이터 표준서 작성, 자동 변환 로직 적용"}}, {"title": "Q9. 데이터가 충분히 최신이고 시의적절한가요? [적시성]", "why": "💡 왜 중요한가요?\n너무 오래된 데이터로 학습하면 현재 상황을 반영 못합니다. 공정 조건이 변경되었거나, 설비가 교체된 이후의 데이터가 더 유의미합니다.", "good_example": "✅ 좋은 예시\n• ‘2024.7 금형 교체 이후 데이터만 사용 (이전 데이터는 조건이 다름)’\n• 데이터 갱신 주기: 일 1회 → 분석 목적에 적합", "bad_example": "❌ 개선 필요 예시\n• 데이터 시점 검토 안 함\n• 5년 전 데이터를 현재 조건에 그대로 적용", "criteria": {"1점": "데이터 시점 검토 안 함", "2점": "기간만 확인, 조건 변경 검토 안 함", "3점": "데이터 기간이 분석 목적에 부합함을 확인", "4점": "공정/설비 변경 이력을 반영하여 유효 데이터 기간 설정", "5점": "갱신 주기와 분석 요건의 적합성까지 검증"}}, {"title": "Q10. 데이터 품질 수준을 숫자(스코어카드)로 측정했나요?", "why": "💡 왜 중요한가요?\n‘좋다/나쁘다’가 아니라 ‘오류율 0.1%, 결측률 0.3%’처럼 숫자로 표현해야 정제 전후 비교가 가능하고 Gate Review 판단이 됩니다.", "good_example": "✅ 좋은 예시\n• 데이터 품질 스코어카드:\n  - 정확성(오류율): 0.1%\n  - 완전성(결측률): 0.3%\n  - 일관성(불일치율): 0%\n  - 종합: 95/100점", "bad_example": "❌ 개선 필요 예시\n• ‘품질 괜찮은 것 같다’(측정 없음)\n• 기준/항목 미정의", "criteria": {"1점": "품질 측정 안 함", "2점": "정성 평가만", "3점": "일부 항목 수치 확인(예: 결측률)", "4점": "주요 차원(정확성, 완전성, 일관성) 수치 측정", "5점": "스코어카드 작성, 처리 전후 비교 포함"}}, {"title": "Q11. 분석/모델링 목적에 맞게 데이터 변환(정규화, 인코딩 등)이 수행되었나요?", "why": "💡 왜 중요한가요?\nAI 모델은 숫자로 학습합니다. ‘양품/불량’ 같은 텍스트는 0/1로 바꿔야 하고, 단위가 다른 숫자(온도 200°C vs 압력 50bar)는 같은 범위로 맞춰야(정규화) 합니다.", "good_example": "✅ 좋은 예시\n• 불량 유형: ‘웰드라인’=1, ‘버’=2, ‘미성형’=3 (라벨 인코딩)\n• 연속형 변수: Min-Max 정규화 적용 (0~1 범위)", "bad_example": "❌ 개선 필요 예시\n• 데이터 변환 안 함\n• 텍스트 데이터를 그대로 모델에 입력", "criteria": {"1점": "데이터 변환 안 함", "2점": "일부 항목만 변환, 기준 없음", "3점": "주요 항목 변환 수행", "4점": "전체 항목에 적합한 변환 방법 적용, 기준 기록", "5점": "변환 방법 선택 근거와 대안 비교까지 문서화"}}, {"title": "Q12. 현업 업무 지식을 반영한 새로운 분석 항목(Feature)을 만들었나요?", "why": "💡 왜 중요한가요?\nFeature Engineering은 원본을 조합해 AI가 더 잘 이해할 수 있는 새 항목을 만드는 것입니다. 예: ‘시작~종료 시간’에서 ‘소요 시간’ 계산. 현업 경험이 가장 중요합니다.", "good_example": "✅ 좋은 예시\n• ‘사출 소요시간 = 종료-시작’ (신규)\n• ‘금형 누적 사용횟수’ (마모도 반영)\n• ‘온도 변화율 = (현재-이전)/시간간격’\n• 사출팀 OOO 과장과 Feature 적합성 검증", "bad_example": "❌ 개선 필요 예시\n• 원본 그대로 사용\n• 현업 의견 없이 임의 생성", "criteria": {"1점": "Feature Engineering 안 함", "2점": "기본 가공만(단위 변환 등)", "3점": "도메인 지식 기반 Feature 1~2개 생성", "4점": "현업 전문가 협의, 다수 Feature 생성 + 근거 기록", "5점": "Feature 중요도 분석까지 수행, 최종 목록/선정 근거 문서화"}}, {"title": "Q13. 학습/검증/테스트 데이터가 적절히 분할되었나요?", "why": "💡 왜 중요한가요?\nAI를 만들려면 데이터를 세 묶음으로 나눕니다: 학습용(교과서, 70~80%), 검증용(모의고사, 10~15%), 테스트용(실전시험, 10~15%). 이 분할이 없으면 AI 성능을 정확히 평가할 수 없습니다.", "good_example": "✅ 좋은 예시\n• 총 48,523건: Train 70% / Val 15% / Test 15%\n• 분할 기준: 시간 순서(미래 데이터 유출 방지)", "bad_example": "❌ 개선 필요 예시\n• 분할 안 함\n• ‘AX팀이 알아서’\n• 분할했으나 기준 미기록", "criteria": {"1점": "데이터셋 분할 안 함", "2점": "원본 있으나 분할 안 됨", "3점": "학습/테스트로 분할됨", "4점": "학습/검증/테스트 분할 + 기준/비율 기록", "5점": "분할 데이터셋 통계(건수, 분포, 클래스비율) 문서화"}}, {"title": "Q14. 데이터 가공 과정이 재현 가능하도록 코드/스크립트로 관리되나요?", "why": "💡 왜 중요한가요?\n엑셀에서 수작업으로 정리하면, 나중에 같은 작업을 다시 하기 어렵습니다. SQL 쿼리, Python 스크립트 등으로 관리하면 버튼 하나로 같은 결과를 재현할 수 있습니다.", "good_example": "✅ 좋은 예시\n• 데이터 추출: SQL 쿼리 저장(extract_injection.sql)\n• 전처리: Python 스크립트(preprocess.py)\n• 전체 파이프라인 실행 순서 README에 기록", "bad_example": "❌ 개선 필요 예시\n• 엑셀 수작업, 어떤 작업했는지 불명확\n• 코드 없이 담당자 기억에 의존", "criteria": {"1점": "재현 가능한 관리 전혀 없음", "2점": "일부 수작업 기록만 있음", "3점": "주요 처리 단계가 코드/쿼리로 관리됨", "4점": "전체 파이프라인이 코드로 관리, 실행 순서 기록", "5점": "자동화 파이프라인 구축, 버전 관리(Git 등) 적용"}}, {"title": "Q15. 데이터 가공 시 발생한 데이터 손실/변형이 기록되어 있나요?", "why": "💡 왜 중요한가요?\n이상값 제거, 결측치 처리 등의 과정에서 원본 데이터가 줄어들거나 변형됩니다. 원본 대비 얼마나 변했는지 기록해야 나중에 문제 추적이 가능합니다.", "good_example": "✅ 좋은 예시\n• 원본 50만 건 → 이상값 제거 1,200건 → 결측 제거 800건 → 최종 48,000건\n• 각 단계별 제거 사유와 비율 기록", "bad_example": "❌ 개선 필요 예시\n• 가공 전후 건수 변화 미기록\n• 얼마나 삭제했는지 모름", "criteria": {"1점": "데이터 손실/변형 기록 없음", "2점": "최종 건수만 알고 과정 모름", "3점": "주요 단계별 건수 변화 기록", "4점": "단계별 제거/변형 사유와 비율이 기록됨", "5점": "원본-최종 간 Lineage(이력 추적)가 완전히 문서화"}}, {"title": "Q16. 모든 데이터 항목의 의미를 정리한 데이터 사전(Data Dictionary)이 있나요?", "why": "💡 왜 중요한가요?\n‘데이터 사전’은 각 항목이 ‘무엇이고, 어떤 형태이고, 어떤 값이 들어가는지’ 정리한 문서입니다. 없으면 담당자가 바뀌거나 시간이 지났을 때 데이터를 이해할 수 없습니다.", "good_example": "✅ 좋은 예시\n• INJECTION_TEMP: 사출 온도, 실수형, 단위 °C, 범위 150~350\n• MOLD_ID: 금형 식별번호, 문자열, M-XXXXX\n• 42개 항목 중 40개 정의(95% 커버리지)", "bad_example": "❌ 개선 필요 예시\n• 데이터 사전 없음\n• ‘COL_A’, ‘TEMP1’ 등 설명 없는 항목명", "criteria": {"1점": "데이터 사전 없음", "2점": "일부 항목에 간략 메모만", "3점": "주요 항목의 이름/설명 정리", "4점": "80% 이상 항목의 이름/설명/타입/단위 정리", "5점": "전체 항목 + 허용값/범위/생성 로직까지 포함"}}, {"title": "Q17. 데이터 수집-정제-가공의 전체 과정이 문서화되어 있나요?", "why": "💡 왜 중요한가요?\n전체 과정을 기록해야 나중에 같은 작업 반복이나 문제 추적이 가능합니다. ‘데이터 파이프라인 문서’라고 합니다.", "good_example": "✅ 좋은 예시\n• 1. MES 원본 추출(SQL) → 2. 이상값 제거(3σ) → 3. 결측 처리(보간) → 4. Feature 생성(Python) → 5. 분할\n• 각 단계의 입력/출력, 도구, 처리 건수 기록", "bad_example": "❌ 개선 필요 예시\n• 처리 과정 미기록\n• 담당자만 기억", "criteria": {"1점": "과정 기록 전혀 없음", "2점": "구두 설명 가능, 문서 없음", "3점": "주요 처리 단계 간략 문서화", "4점": "전체 파이프라인 단계별 문서화, 재현 가능", "5점": "자동화 파이프라인 + 문서 + 버전 관리"}}, {"title": "Q18. 데이터 접근 권한과 보안 정책이 준수되고 있나요?", "why": "💡 왜 중요한가요?\n누가 데이터에 접근할 수 있는지, 데이터를 어디에 저장하는지에 대한 규칙입니다. 특히 사외 반출이나 클라우드 저장 시 별도 승인이 필요합니다.", "good_example": "✅ 좋은 예시\n• 접근 권한: 과제 팀원 4명만 접근 가능(권한 설정 완료)\n• 저장 위치: 사내 분석 서버(외부 반출 금지)\n• 보안 정책: 정보보안팀 가이드라인 준수 확인", "bad_example": "❌ 개선 필요 예시\n• 접근 권한 관리 안 함\n• 개인 PC에 데이터 무단 저장", "criteria": {"1점": "접근 권한/보안 관리 안 함", "2점": "일부 인식은 있으나 조치 안 함", "3점": "기본적인 접근 권한 설정 완료", "4점": "접근 권한 + 저장 위치 + 보안 정책 준수", "5점": "보안 감사 대응 가능한 수준의 관리 체계 구축"}}, {"title": "Q19. 데이터 품질 이슈와 해결 과정이 이력으로 관리되고 있나요?", "why": "💡 왜 중요한가요?\n데이터 문제를 발견하고 해결한 과정을 기록해두면, 같은 문제가 재발했을 때 빠르게 대응할 수 있고, 향후 과제에도 참고가 됩니다.", "good_example": "✅ 좋은 예시\n• 이슈 로그:\n  - 2024.3.15: 온도 센서 A-03 이상값 다수 → 센서 교체 후 해결\n  - 2024.5.20: MES 데이터 3일간 누락 → 수동 백업 데이터로 보완", "bad_example": "❌ 개선 필요 예시\n• 이슈 기록 안 함\n• ‘해결했으니 됐다’ (과정 미기록)", "criteria": {"1점": "이슈 이력 관리 안 함", "2점": "일부 이슈만 기억, 기록 없음", "3점": "주요 이슈가 목록으로 정리됨", "4점": "이슈별 원인/조치/결과가 기록됨", "5점": "이슈 트래킹 시스템으로 관리, 재발 방지 대책 포함"}}, {"title": "Q20. 도메인 전문가(현업)와 데이터 검증 세션을 수행했나요?", "why": "💡 왜 중요한가요?\n데이터의 의미와 맥락은 현업이 가장 잘 압니다. 전문가 검증 없이 데이터를 가공하면 ‘숫자는 맞지만 의미가 틀린’ 결과가 나올 수 있습니다.", "good_example": "✅ 좋은 예시\n• 1차 검증(2주차): 사출팀과 항목 정의 확인\n• 2차 검증(4주차): 이상값 기준 합의\n• 3차 검증(6주차): 최종 데이터셋 품질 확인\n• 각 세션 회의록 작성 및 공유", "bad_example": "❌ 개선 필요 예시\n• 현업 검증 없이 AX팀 단독 진행\n• ‘나중에 보여주면 되지’", "criteria": {"1점": "도메인 전문가 검증 안 함", "2점": "비공식적 확인 1회 정도", "3점": "공식 검증 세션 1~2회 수행", "4점": "3회 이상 수행, 주요 피드백 반영", "5점": "정기 검증 체계 수립, 회의록/피드백 이력 관리"}}];
+
+const scores = new Array(40).fill(0);
+let selectedMode = 3; // 1=기획, 2=데이터준비, 3=Both
+
+function setMode(mode, btnEl){
+  selectedMode = mode;
+  document.querySelectorAll('.stage-btn').forEach(b => b.classList.remove('active'));
+  btnEl.classList.add('active');
+  applyMode();
+}
+
+function getVisibleSections(){
+  if(selectedMode === 1) return SECTIONS.filter(s => s.part === 1);
+  if(selectedMode === 2) return SECTIONS.filter(s => s.part === 2);
+  return SECTIONS;
+}
+
+function applyMode(){
+  // Show/hide sections, question cards, and subtotals
+  SECTIONS.forEach(sec => {
+    const visible = (selectedMode === 3) || (sec.part === selectedMode);
+    const sectionHeader = document.getElementById('section-' + sec.id);
+    const subtotal = document.getElementById('subtotal-' + sec.id);
+    if(sectionHeader) sectionHeader.style.display = visible ? '' : 'none';
+    if(subtotal) subtotal.style.display = visible ? '' : 'none';
+    for(let i = sec.range[0]; i < sec.range[1]; i++){
+      const card = document.getElementById('q-' + i);
+      if(card) card.style.display = visible ? '' : 'none';
+    }
+  });
+
+  // Update hero stats
+  const visSec = getVisibleSections();
+  const qCount = visSec.reduce((a,s) => a + (s.range[1] - s.range[0]), 0);
+  const totalPts = qCount * 5;
+  const heroNums = document.querySelectorAll('.hero-stat .num');
+  if(heroNums.length >= 3){
+    heroNums[0].textContent = qCount;
+    heroNums[1].textContent = totalPts;
+    heroNums[2].textContent = visSec.length;
+  }
+
+  // Update progress bar section indicators
+  renderProgressSections();
+
+  // Hide results
+  document.getElementById('resultsSection').classList.add('hidden');
+  document.getElementById('resultsSection').innerHTML = '';
+
+  updateProgress();
+}
+
+// ═══════════════════════════════════════
+// RENDER QUESTIONS
+// ═══════════════════════════════════════
+function renderQuestions(){
+  const container = document.getElementById('questionsContainer');
+  let html = '';
+
+  SECTIONS.forEach((sec,si) => {
+    const partLabel = sec.part === 1 ? 'PART 1 · 기획 단계' : 'PART 2 · 데이터 준비 단계';
+    html += `
+      <div class="section-header" id="section-${sec.id}">
+        <div class="part-tag">${partLabel}</div>
+        <h2>${sec.id}. ${sec.name} (Q${sec.range[0]-((sec.part-1)*20)+1}~Q${sec.range[1]-((sec.part-1)*20)})</h2>
+        <p>${sec.desc}</p>
+      </div>
+    `;
+
+    for(let i = sec.range[0]; i < sec.range[1]; i++){
+      const q = QUESTIONS[i];
+      const qNum = i+1;
+      const localQ = i - (sec.part === 2 ? 20 : 0) + 1;
+
+      const whyText = q.why.replace(/^💡\s*왜 중요한가요\?\n?/,'');
+
+      let goodHtml = '', badHtml = '';
+      if(q.good_example){
+        const goodText = q.good_example.replace(/^✅\s*좋은 예시\n?/,'').replace(/\n/g,'<br>');
+        goodHtml = `<div class="example-box good"><div class="ex-title">좋은 예시</div>${goodText}</div>`;
+      }
+      if(q.bad_example){
+        const badText = q.bad_example.replace(/^❌\s*개선 필요 예시\n?/,'').replace(/\n/g,'<br>');
+        badHtml = `<div class="example-box bad"><div class="ex-title">개선 필요 예시</div>${badText}</div>`;
+      }
+
+      let criteriaHtml = '';
+      if(q.criteria){
+        criteriaHtml = '<table class="criteria-table"><thead><tr><th>점수</th><th>이 점수에 해당하려면?</th></tr></thead><tbody>';
+        for(let s=1;s<=5;s++){
+          const key = s+'점';
+          criteriaHtml += `<tr><td>${s}점</td><td>${q.criteria[key]||''}</td></tr>`;
+        }
+        criteriaHtml += '</tbody></table>';
+      }
+
+      const scoreLabels = ['미수행','부족','기본','양호','우수'];
+      let scoreBtns = '<div class="score-selector">';
+      for(let s=1;s<=5;s++){
+        scoreBtns += `<div class="score-btn" data-q="${i}" data-score="${s}" onclick="selectScore(${i},${s},this)">
+          <span class="s-num">${s}</span><span class="s-label">${scoreLabels[s-1]}</span>
+        </div>`;
+      }
+      scoreBtns += '</div>';
+
+      html += `
+        <div class="q-card" id="q-${i}" style="animation-delay:${(i%5)*0.05}s">
+          <div class="q-header">
+            <div class="q-number">${localQ}</div>
+            <div class="q-title">${q.title}</div>
+            <div class="q-score-badge" id="badge-${i}">-</div>
+          </div>
+          <div class="q-body">
+            <div class="q-body-inner">
+              <div class="why-box"><strong>왜 중요한가요?</strong><br>${whyText}</div>
+              <div class="examples">${goodHtml}${badHtml}</div>
+              ${criteriaHtml}
+              ${scoreBtns}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Subtotal
+    html += `
+      <div class="section-subtotal" id="subtotal-${sec.id}">
+        <div class="subtotal-left">
+          <h3>${sec.id}. ${sec.name}</h3>
+          <p>5문항 &middot; 25점 만점</p>
+        </div>
+        <div class="subtotal-right">
+          <div>
+            <div class="subtotal-bar"><div class="subtotal-fill" id="subfill-${sec.id}" style="width:0"></div></div>
+          </div>
+          <div>
+            <span class="subtotal-score" id="subscore-${sec.id}">0</span>
+            <span class="subtotal-max">/ 25</span>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+  renderProgressSections();
+}
+
+// ═══════════════════════════════════════
+// PROGRESS
+// ═══════════════════════════════════════
+function renderProgressSections(){
+  const el = document.getElementById('progressSections');
+  const visSec = getVisibleSections();
+  el.innerHTML = visSec.map(s =>
+    `<div class="progress-section" data-label="${s.id}. ${s.name}" id="psec-${s.id}" onclick="scrollToSection('${s.id}')"></div>`
+  ).join('');
+}
+
+function updateProgress(){
+  const visSec = getVisibleSections();
+  const totalQ = visSec.reduce((a,s) => a + (s.range[1] - s.range[0]), 0);
+  let answered = 0;
+  visSec.forEach(sec => {
+    for(let i = sec.range[0]; i < sec.range[1]; i++){
+      if(scores[i] > 0) answered++;
+    }
+  });
+  const pct = totalQ > 0 ? Math.round((answered / totalQ) * 100) : 0;
+  document.getElementById('progressPct').textContent = pct + '%';
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressLabel').textContent = `${answered}/${totalQ} 문항 완료`;
+
+  visSec.forEach(sec => {
+    const secScores = scores.slice(sec.range[0], sec.range[1]);
+    const secAnswered = secScores.filter(s => s > 0).length;
+    const el = document.getElementById('psec-' + sec.id);
+    if(!el) return;
+    el.className = 'progress-section';
+    if(secAnswered === 5) el.classList.add('done');
+    else if(secAnswered > 0) el.classList.add('active');
+
+    // Update subtotal
+    const sum = secScores.reduce((a,b)=>a+b,0);
+    document.getElementById('subscore-' + sec.id).textContent = sum;
+    document.getElementById('subfill-' + sec.id).style.width = (sum/25*100) + '%';
+  });
+
+  document.getElementById('submitBtn').disabled = answered < totalQ;
+}
+
+// ═══════════════════════════════════════
+// INTERACTIONS
+// ═══════════════════════════════════════
+function selectScore(qIdx, score, btnEl){
+  scores[qIdx] = score;
+
+  // Update button states
+  const card = document.getElementById('q-'+qIdx);
+  card.querySelectorAll('.score-btn').forEach(b => b.classList.remove('selected'));
+  btnEl.classList.add('selected');
+
+  // Update card state
+  card.classList.add('answered');
+  document.getElementById('badge-'+qIdx).textContent = score + '점';
+
+  updateProgress();
+}
+
+function scrollToSection(id){
+  document.getElementById('section-'+id)?.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// ═══════════════════════════════════════
+// GRADE CALC
+// ═══════════════════════════════════════
+function getGrade(score, max){
+  const pct = (score / max) * 100;
+  if(pct >= 90) return {grade:'S',label:'탁월',color:'#b45309',msg:'즉시 Gate 통과. 사내 우수 사례로 공유 가능'};
+  if(pct >= 80) return {grade:'A',label:'우수',color:'#15803d',msg:'Gate 통과! 다음 단계로 진행하세요.'};
+  if(pct >= 65) return {grade:'B',label:'양호',color:'#1d4ed8',msg:'미흡 항목 보완 후 2주 내 재평가'};
+  if(pct >= 50) return {grade:'C',label:'보통',color:'#c2410c',msg:'AX추진팀 코칭 후 4주 내 재평가 권장'};
+  return {grade:'D',label:'미흡',color:'#b91c1c',msg:'과제 방향 재검토 필요. AX추진팀과 상의하세요.'};
+}
+
+// ═══════════════════════════════════════
+// SHOW RESULTS
+// ═══════════════════════════════════════
+function showResults(){
+  const section = document.getElementById('resultsSection');
+  section.classList.remove('hidden');
+  const visSec = getVisibleSections();
+  const showPart1 = selectedMode === 1 || selectedMode === 3;
+  const showPart2 = selectedMode === 2 || selectedMode === 3;
+
+  // Part scores
+  const part1Score = scores.slice(0,20).reduce((a,b)=>a+b,0);
+  const part2Score = scores.slice(20,40).reduce((a,b)=>a+b,0);
+  const part1Grade = getGrade(part1Score, 100);
+  const part2Grade = getGrade(part2Score, 100);
+
+  const projectName = document.getElementById('projectName').value || '(미입력)';
+  const author = document.getElementById('author').value || '(미입력)';
+  const dept = document.getElementById('dept').value || '(미입력)';
+  const evalDate = document.getElementById('evalDate').value || new Date().toISOString().split('T')[0];
+
+  // Build section results (only visible sections)
+  let sectionCards = '';
+  let weakSections = [];
+  visSec.forEach(sec => {
+    const secScores = scores.slice(sec.range[0], sec.range[1]);
+    const sum = secScores.reduce((a,b)=>a+b,0);
+    const g = getGrade(sum, 25);
+    const isWeak = sum < 15;
+    if(isWeak) weakSections.push(sec);
+
+    sectionCards += `
+      <div class="result-card ${isWeak?'warn':''}">
+        <div class="rc-title">${sec.id}. ${sec.name}</div>
+        <div class="rc-score" style="color:${g.color}">${sum}<span style="font-size:.9rem;color:var(--text3)"> / 25</span></div>
+        <div class="rc-grade grade-${g.grade}" style="color:${g.color};border-color:${g.color}">${g.grade}</div>
+        <div class="rc-bar"><div class="rc-fill" style="width:${sum/25*100}%;background:${g.color}"></div></div>
+        ${isWeak ? '<div style="margin-top:8px;font-size:.75rem;color:var(--red)">15점 미만 — 필수 보완 대상</div>' : ''}
+      </div>
+    `;
+  });
+
+  // Build feedback (only visible sections)
+  let feedbackHtml = '';
+
+  // Positive feedback for high-scoring sections
+  visSec.forEach(sec => {
+    const secScores = scores.slice(sec.range[0], sec.range[1]);
+    const sum = secScores.reduce((a,b)=>a+b,0);
+    if(sum >= 20){
+      feedbackHtml += `<div class="feedback-item positive"><span class="feedback-icon">&#x2714;</span><div class="feedback-text"><strong>${sec.id}. ${sec.name}</strong> 영역이 우수합니다 (${sum}/25점). 잘 준비되었습니다!</div></div>`;
+    }
+  });
+
+  // Negative feedback for low-scoring questions (only visible)
+  visSec.forEach(sec => {
+    for(let i = sec.range[0]; i < sec.range[1]; i++){
+      const s = scores[i];
+      if(s <= 2){
+        const q = QUESTIONS[i];
+        feedbackHtml += `<div class="feedback-item negative"><span class="feedback-icon">&#x26A0;</span><div class="feedback-text"><strong>[${sec.id}] ${q.title.replace(/^Q\d+\.\s*/,'')}</strong><br>${s}점으로 개선이 필요합니다. ${q.criteria?.['4점'] ? '목표: ' + q.criteria['4점'] : ''}</div></div>`;
+      }
+    }
+  });
+
+  // Weak sections
+  if(weakSections.length > 0){
+    feedbackHtml += `<div class="feedback-item info"><span class="feedback-icon">&#x2139;</span><div class="feedback-text"><strong>필수 보완 섹션:</strong> ${weakSections.map(s=>s.id+'. '+s.name).join(', ')} — 15점 미만 섹션은 등급 무관 필수 보완 대상입니다.</div></div>`;
+  }
+
+  // Gate pass status (per mode)
+  const part1Pass = part1Score >= 80;
+  const part2Pass = part2Score >= 80;
+  let allPass = true;
+
+  if(showPart1 && showPart2){
+    if(part1Pass && part2Pass){
+      feedbackHtml += `<div class="feedback-item positive"><span class="feedback-icon">&#x1F3C6;</span><div class="feedback-text"><strong>축하합니다!</strong> 기획 단계와 데이터 준비 단계 모두 Gate 통과 기준(80점)을 충족했습니다. 산출물과 함께 AX추진팀에 제출하세요.</div></div>`;
+    } else {
+      allPass = false;
+      if(!part1Pass) feedbackHtml += `<div class="feedback-item negative"><span class="feedback-icon">&#x26D4;</span><div class="feedback-text"><strong>기획 단계</strong> Gate 미통과 (${part1Score}/100점). 80점 이상이 필요합니다. ${part1Grade.msg}</div></div>`;
+      if(!part2Pass) feedbackHtml += `<div class="feedback-item negative"><span class="feedback-icon">&#x26D4;</span><div class="feedback-text"><strong>데이터 준비 단계</strong> Gate 미통과 (${part2Score}/100점). 80점 이상이 필요합니다. ${part2Grade.msg}</div></div>`;
+    }
+  } else if(showPart1){
+    if(part1Pass){
+      feedbackHtml += `<div class="feedback-item positive"><span class="feedback-icon">&#x1F3C6;</span><div class="feedback-text"><strong>축하합니다!</strong> 기획 단계 Gate 통과 기준(80점)을 충족했습니다. 산출물과 함께 AX추진팀에 제출하세요.</div></div>`;
+    } else {
+      allPass = false;
+      feedbackHtml += `<div class="feedback-item negative"><span class="feedback-icon">&#x26D4;</span><div class="feedback-text"><strong>기획 단계</strong> Gate 미통과 (${part1Score}/100점). 80점 이상이 필요합니다. ${part1Grade.msg}</div></div>`;
+    }
+  } else if(showPart2){
+    if(part2Pass){
+      feedbackHtml += `<div class="feedback-item positive"><span class="feedback-icon">&#x1F3C6;</span><div class="feedback-text"><strong>축하합니다!</strong> 데이터 준비 단계 Gate 통과 기준(80점)을 충족했습니다. 산출물과 함께 AX추진팀에 제출하세요.</div></div>`;
+    } else {
+      allPass = false;
+      feedbackHtml += `<div class="feedback-item negative"><span class="feedback-icon">&#x26D4;</span><div class="feedback-text"><strong>데이터 준비 단계</strong> Gate 미통과 (${part2Score}/100점). 80점 이상이 필요합니다. ${part2Grade.msg}</div></div>`;
+    }
+  }
+
+  // Next steps
+  let nextSteps = '';
+  if(allPass){
+    nextSteps = `
+      <div class="feedback-item info"><span class="feedback-icon">&#x27A1;</span><div class="feedback-text"><strong>다음 단계:</strong><br>
+      1. 자가평가 결과 + 산출물(기획서, 데이터 명세서 등)을 AX추진팀에 제출<br>
+      2. AX추진팀 검토 후 Gate Review 일정 확정<br>
+      3. Gate Review 통과 시 다음 단계 진행</div></div>`;
+  } else {
+    nextSteps = `
+      <div class="feedback-item info"><span class="feedback-icon">&#x27A1;</span><div class="feedback-text"><strong>다음 단계:</strong><br>
+      1. 각 섹션 소계와 단계별 합계 점수를 확인하세요<br>
+      2. 15점 미만 섹션 및 2점 이하 문항을 우선 보완하세요<br>
+      3. 보완 후 자가평가를 다시 수행하세요<br>
+      4. 도움이 필요하시면 AX추진팀에서 1:1 코칭을 지원합니다</div></div>`;
+  }
+
+  // Build result hero with only visible parts
+  let partResultsHtml = '';
+  if(showPart1){
+    partResultsHtml += `
+      <div>
+        <div style="font-size:.82rem;color:var(--text3);margin-bottom:8px">PART 1 · 기획 단계</div>
+        <div class="total-score">${part1Score}<span class="total-max">/100</span></div>
+        <div class="total-grade grade-${part1Grade.grade}" style="margin-top:12px">${part1Grade.grade}</div>
+        <div style="font-size:.8rem;color:${part1Grade.color};margin-top:8px">${part1Grade.label} — ${part1Pass ? 'Gate 통과':'Gate 미통과'}</div>
+      </div>`;
+  }
+  if(showPart2){
+    partResultsHtml += `
+      <div>
+        <div style="font-size:.82rem;color:var(--text3);margin-bottom:8px">PART 2 · 데이터 준비</div>
+        <div class="total-score">${part2Score}<span class="total-max">/100</span></div>
+        <div class="total-grade grade-${part2Grade.grade}" style="margin-top:12px">${part2Grade.grade}</div>
+        <div style="font-size:.8rem;color:${part2Grade.color};margin-top:8px">${part2Grade.label} — ${part2Pass ? 'Gate 통과':'Gate 미통과'}</div>
+      </div>`;
+  }
+
+  const modeLabel = selectedMode === 1 ? '기획' : selectedMode === 2 ? '데이터준비' : '기획+데이터준비';
+
+  section.innerHTML = `
+    <div class="result-hero">
+      <h2>자가평가 결과</h2>
+      <div style="margin-bottom:8px;font-size:.85rem;color:var(--text2)">${projectName} &middot; ${dept} ${author} &middot; ${evalDate} &middot; 평가 범위: ${modeLabel}</div>
+
+      <div style="display:flex;justify-content:center;gap:48px;margin-top:24px;flex-wrap:wrap">
+        ${partResultsHtml}
+      </div>
+    </div>
+
+    <h3 style="font-size:1.1rem;font-weight:700;margin-bottom:16px">영역별 점수</h3>
+    <div class="result-grid">${sectionCards}</div>
+
+    <div class="feedback-section">
+      <h3>상세 피드백</h3>
+      ${feedbackHtml}
+      ${nextSteps}
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-primary" onclick="printResults()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        인쇄 / PDF 저장
+      </button>
+      <button class="btn btn-secondary" onclick="exportCSV()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        CSV 다운로드
+      </button>
+      <button class="btn btn-secondary" onclick="scrollToTop()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 11 12 6 7 11"/><line x1="12" y1="18" x2="12" y2="6"/></svg>
+        위로 돌아가기
+      </button>
+    </div>
+  `;
+
+  section.scrollIntoView({behavior:'smooth',block:'start'});
+
+  // Confetti for pass
+  if(allPass){
+    launchConfetti();
+  }
+}
+
+// ═══════════════════════════════════════
+// UTILITIES
+// ═══════════════════════════════════════
+function resetAll(){
+  if(!confirm('모든 평가를 초기화하시겠습니까?')) return;
+  scores.fill(0);
+  document.querySelectorAll('.q-card').forEach(c => {
+    c.classList.remove('answered','open');
+  });
+  document.querySelectorAll('.score-btn').forEach(b => b.classList.remove('selected'));
+  document.querySelectorAll('[id^="badge-"]').forEach(b => b.textContent = '-');
+  document.getElementById('resultsSection').classList.add('hidden');
+  document.getElementById('resultsSection').innerHTML = '';
+  selectedMode = 3;
+  document.querySelectorAll('.stage-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('modeBtn3').classList.add('active');
+  applyMode();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function printResults(){
+  window.print();
+}
+
+function exportCSV(){
+  const projectName = document.getElementById('projectName').value || '';
+  const author = document.getElementById('author').value || '';
+  const dept = document.getElementById('dept').value || '';
+  const evalDate = document.getElementById('evalDate').value || '';
+  const visSec = getVisibleSections();
+  const showPart1 = selectedMode === 1 || selectedMode === 3;
+  const showPart2 = selectedMode === 2 || selectedMode === 3;
+  const modeLabel = selectedMode === 1 ? '기획' : selectedMode === 2 ? '데이터준비' : '기획+데이터준비';
+
+  let csv = '\uFEFF';  // BOM for Korean
+  csv += '과제명,부서,작성자,작성일,평가범위\n';
+  csv += `"${projectName}","${dept}","${author}","${evalDate}","${modeLabel}"\n\n`;
+  csv += '영역,문항번호,문항,점수\n';
+
+  visSec.forEach(sec => {
+    for(let i=sec.range[0]; i<sec.range[1]; i++){
+      const q = QUESTIONS[i];
+      const localQ = i - (sec.part === 2 ? 20 : 0) + 1;
+      csv += `"${sec.id}. ${sec.name}","Q${localQ}","${q.title.replace(/"/g,'""')}",${scores[i]}\n`;
+    }
+    const sum = scores.slice(sec.range[0],sec.range[1]).reduce((a,b)=>a+b,0);
+    csv += `"${sec.id}. ${sec.name} 소계","","",${sum}\n`;
+  });
+
+  if(showPart1){
+    const part1 = scores.slice(0,20).reduce((a,b)=>a+b,0);
+    csv += `\n기획 단계 합계,,,${part1}\n`;
+  }
+  if(showPart2){
+    const part2 = scores.slice(20,40).reduce((a,b)=>a+b,0);
+    csv += `데이터 준비 단계 합계,,,${part2}\n`;
+  }
+
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `AX자가평가_${projectName||'결과'}_${evalDate||'날짜'}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function scrollToTop(){
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function launchConfetti(){
+  const wrap = document.createElement('div');
+  wrap.className = 'confetti-wrap';
+  document.body.appendChild(wrap);
+
+  const colors = ['#f6ad3c','#22c55e','#3b82f6','#a78bfa','#ef4444','#ec4899'];
+  for(let i=0;i<60;i++){
+    const c = document.createElement('div');
+    c.className = 'confetti';
+    c.style.left = Math.random()*100+'%';
+    c.style.background = colors[Math.floor(Math.random()*colors.length)];
+    c.style.animationDelay = Math.random()*2+'s';
+    c.style.animationDuration = (2+Math.random()*2)+'s';
+    c.style.width = (6+Math.random()*8)+'px';
+    c.style.height = (6+Math.random()*8)+'px';
+    c.style.borderRadius = Math.random()>0.5?'50%':'2px';
+    c.style.transform = `rotate(${Math.random()*360}deg)`;
+    wrap.appendChild(c);
+  }
+
+  setTimeout(()=>wrap.remove(), 5000);
+}
+
+// ═══════════════════════════════════════
+// LOCAL STORAGE
+// ═══════════════════════════════════════
+function saveState(){
+  const state = {
+    scores,
+    selectedMode,
+    projectName: document.getElementById('projectName').value,
+    dept: document.getElementById('dept').value,
+    author: document.getElementById('author').value,
+    evalDate: document.getElementById('evalDate').value,
+  };
+  try{ localStorage.setItem('ax-eval-state', JSON.stringify(state)); }catch(e){}
+}
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem('ax-eval-state');
+    if(!raw) return;
+    const state = JSON.parse(raw);
+    if(state.scores && state.scores.length === 40){
+      state.scores.forEach((s,i) => {
+        if(s > 0){
+          scores[i] = s;
+          const card = document.getElementById('q-'+i);
+          card.classList.add('answered');
+          document.getElementById('badge-'+i).textContent = s+'점';
+          const btn = card.querySelector(`.score-btn[data-score="${s}"]`);
+          if(btn) btn.classList.add('selected');
+        }
+      });
+    }
+    if(state.selectedMode && [1,2,3].includes(state.selectedMode)){
+      selectedMode = state.selectedMode;
+      document.querySelectorAll('.stage-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('modeBtn'+selectedMode).classList.add('active');
+      applyMode();
+    }
+    if(state.projectName) document.getElementById('projectName').value = state.projectName;
+    if(state.dept) document.getElementById('dept').value = state.dept;
+    if(state.author) document.getElementById('author').value = state.author;
+    if(state.evalDate) document.getElementById('evalDate').value = state.evalDate;
+    updateProgress();
+  }catch(e){}
+}
+
+// Auto-save on changes
+setInterval(saveState, 3000);
+
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
+document.getElementById('evalDate').value = new Date().toISOString().split('T')[0];
+renderQuestions();
+loadState();
+</script>
+
+</body>
+</html>
